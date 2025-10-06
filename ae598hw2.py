@@ -6,18 +6,9 @@ import time
 moves = np.array(['left', 'down', 'right', 'up'])
 
 class OnPolicyMCControl():
-    total_states = 0
-    total_actions = 0
-    Q = 0 #action value function now
-    pi = 0
-    returns = 0
     discount = 0.95
     epsilon = 0.10
     env = 0
-    iteration = 0
-    iterations = []
-    values = [0]
-    episode = []
 
     def __init__(self, env):
         self.env = env
@@ -30,6 +21,10 @@ class OnPolicyMCControl():
             self.pi[i] = self.pi[i] / np.sum(self.pi[i]) #normalize so everything adds up to one
         self.returns_over_time = [0]
         self.mean_returns = []
+        self.iteration = 0
+        self.iterations = []
+        self.values = [0]
+        self.episode = []
 
     def generate_episode(self): #follow current pi till the end state and record it
         done = False #if we're done with episode
@@ -71,7 +66,6 @@ class OnPolicyMCControl():
                         self.pi[state][j] = (self.epsilon/self.total_actions)
         self.returns_over_time.append(G)
         self.mean_returns.append(np.mean(self.returns_over_time))
-
 
     def exists(self, state, action, timestep):
         for i, row in enumerate(self.episode):
@@ -126,7 +120,6 @@ class SARSA():
         move = np.random.choice(self.total_actions, p=self.pi[curr_state])
         done = False
         illegal_move = False
-        step = 0
         total_return = 0
         rewards = []
         while not (done or illegal_move):
@@ -259,44 +252,43 @@ if __name__ == '__main__':
         "HFFG"
     ]
 
-    env = gym.make('FrozenLake-v1', desc=custom_map, map_name="4x4", is_slippery=True)
+    env = gym.make('FrozenLake-v1', desc=custom_map, map_name="4x4", is_slippery=False)
     np.set_printoptions(suppress=True, precision=4)
-
-    MCdonalds = OnPolicyMCControl(env)
-    while(max(MCdonalds.returns_over_time) == 0):
-        MCdonalds = OnPolicyMCControl(env)
-        for i in range(100):
-            MCdonalds.generate_episode()
-            MCdonalds.inverse_loop()
+    # MCdonalds = OnPolicyMCControl(env)
+    # while(max(MCdonalds.returns_over_time) == 0):
+    #     MCdonalds = OnPolicyMCControl(env)
+    #     for i in range(1000):
+    #         MCdonalds.generate_episode()
+    #         MCdonalds.inverse_loop()
     
-    print(moves[np.argmax(np.round(MCdonalds.pi, 2), axis=1)].reshape(4,4))
-    MCdonalds.graph_returns()
+    # # print(moves[np.argmax(np.round(MCdonalds.pi, 2), axis=1)].reshape(4,4))
+    # MCdonalds.graph_returns()
+    # print(MCdonalds.Q)
 
     # print(MCdonalds.pi)
     # print(MCdonalds.iteration)
     # MCdonalds.graph()
 
-    # salsa = SARSA(env)
-    # while(max(salsa.returns_over_time) == 0):
-    #     salsa = SARSA(env)
-    #     print("we running this loop")
-    #     for i in range(2000):
-    #         salsa.episode()
-    #     print(len(salsa.mean_returns))
+    salsa = SARSA(env)
+    while(max(salsa.returns_over_time) == 0):
+        salsa = SARSA(env)
+        for i in range(2000):
+            salsa.episode()
 
-    # # print(moves)
-    # # print(salsa.pi)
-    # # print(np.sum(salsa.counts, axis=1).reshape(4,4), "\n")
-    # # salsa.graph_returns()
-    # print(moves[np.argmax(np.round(salsa.pi, 2), axis=1)].reshape(4,4), "\n")
-    # # print(salsa.Q)
+    # print(moves)
+    # print(salsa.pi)
+    print(np.sum(salsa.counts, axis=1).reshape(4,4), "\n")
+    # salsa.graph_returns()
+    print(moves[np.argmax(np.round(salsa.pi, 2), axis=1)].reshape(4,4), "\n")
+    print(salsa.Q)
 
-    # agent_q = Q_learning(env)
-    # while(max(agent_q.returns_over_time) == 0):
-    #     agent_q = Q_learning(env)
-    #     for i in range(2000):
-    #         agent_q.episode()
+    agent_q = Q_learning(env)
+    while(max(agent_q.returns_over_time) == 0):
+        agent_q = Q_learning(env)
+        for i in range(2000):
+            agent_q.episode()
 
-    # # agent_q.graph_returns()
-    # print(moves[np.argmax(np.round(agent_q.pi, 2), axis=1)].reshape(4,4), "\n")
-    # # print(np.sum(agent_q.counts, axis=1).reshape(4,4))
+    # agent_q.graph_returns()
+    print(moves[np.argmax(np.round(agent_q.pi, 2), axis=1)].reshape(4,4), "\n")
+    print(np.sum(agent_q.counts, axis=1).reshape(4,4))
+    print(agent_q.Q)
